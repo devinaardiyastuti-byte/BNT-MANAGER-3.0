@@ -2,460 +2,383 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>BNT Manager Pro - Ultimate</title>
+    <meta name="author" content="Yohanes Budi Agung">
+    <title>BNT Manager Pro - Platinum Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#2c3e50">
+    
+    <!-- Library pendukung -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        :root { --primary: #2c3e50; --accent: #27ae60; --danger: #e74c3c; --info: #3498db; --warning: #f39c12; }
-        body { font-family: 'Segoe UI', sans-serif; padding: 10px; background: #f4f7f6; margin: 0; }
-        .container { max-width: 700px; margin: auto; background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        
-        .logo-box { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .logo-box img { max-width: 70px; border-radius: 10px; }
-        .logo-box h2 { margin: 5px 0 0 0; font-size: 20px; color: var(--primary); }
-        .logo-box p { font-size: 10px; margin: 2px 0; color: #7f8c8d; line-height: 1.4; }
-        
-        .menu-tab { display: flex; gap: 4px; margin-bottom: 15px; flex-wrap: wrap; }
-        .menu-tab button { flex: 1; padding: 10px 5px; cursor: pointer; border: none; background: #e0e0e0; border-radius: 8px; font-weight: bold; font-size: 10px; color: #555; }
-        .menu-tab button.active { background: var(--primary) !important; color: white !important; }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-        label { display: block; font-weight: bold; font-size: 11px; color: #555; margin-bottom: 3px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; margin-bottom: 10px; outline: none; }
-        .flex-row { display: flex; gap: 8px; align-items: flex-end; }
+    <style>
+        :root { --primary: #2c3e50; --accent: #2ecc71; --danger: #e74c3c; --info: #3498db; --warning: #f39c12; --light: #f8f9fa; --border: #dee2e6; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 10px; background: #eaeff2; margin: 0; color: #2c3e50; }
+        .container { max-width: 650px; margin: auto; background: #fff; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        #layar-tutup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; display: flex; align-items: center; justify-content: center; z-index: 99999; flex-direction: column; color: white; text-align: center; padding: 20px; }
+        .status-bar { font-size: 10px; text-align: center; font-weight: bold; margin-bottom: 10px; padding: 5px; border-radius: 10px; }
+        .online { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .offline { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .menu-tab { display: flex; gap: 4px; margin-bottom: 15px; flex-wrap: wrap; }
+        .menu-tab button { flex: 1; padding: 10px 2px; cursor: pointer; border: none; background: #dfe6e9; border-radius: 8px; font-weight: bold; font-size: 10px; color: #636e72; }
+        .menu-tab button.active { background: var(--primary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        label { display: block; font-weight: bold; font-size: 10px; margin-bottom: 3px; text-transform: uppercase; color: #7f8c8d; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; box-sizing: border-box; outline: none; }
+        .flex-row { display: flex; gap: 10px; }
         .flex-row > div { flex: 1; }
 
-        .item-card { background: #f9f9f9; padding: 12px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 10px; position: relative; }
-        .btn-add-item { background: var(--info); color: white; border: none; padding: 10px; border-radius: 8px; font-size: 12px; cursor: pointer; margin-bottom: 15px; width: 100%; font-weight: bold; }
-        .btn-del-item { background: var(--danger); color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; font-size: 10px; position: absolute; right: 10px; top: 10px; }
-
-        button.action { background: var(--accent); color: white; border: none; padding: 14px; width: 100%; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 14px; margin-top: 5px; }
-        .edit-active { background: var(--warning) !important; }
-
-        .table-container { overflow-x: auto; margin-top: 15px; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 450px; }
-        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #f8f9fa; color: var(--primary); }
+        .item-card { background: #fcfcfc; padding: 12px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 10px; position: relative; }
+        .btn-add-item { background: var(--info); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+        .btn-del-item { background: var(--danger); color: white; border: none; padding: 4px 8px; border-radius: 5px; font-size: 10px; position: absolute; right: 10px; top: 10px; cursor: pointer; }
+        button.action { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; cursor: pointer; border-radius: 10px; font-weight: bold; font-size: 14px; }
         
-        .nama-klik { color: var(--info); cursor: pointer; text-decoration: underline; font-weight: bold; }
-        .btn-group { display: flex; gap: 4px; }
-        .btn-group button { border: none; padding: 6px 10px; border-radius: 5px; color: white; cursor: pointer; font-size: 12px; }
-        
-        .highlight { background: #fff3cd; padding: 10px; border-radius: 8px; font-weight: bold; color: #856404; margin-bottom: 10px; border: 1px solid #ffeeba; }
-        .card { background: #fdfdfd; padding: 15px; border-left: 5px solid var(--primary); border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .table-container { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 450px; }
+        th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; }
+        th { background: #f1f3f5; color: var(--primary); }
 
-        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); overflow-y: auto; }
-        .modal-content { background: white; margin: 15px auto; padding: 20px; border-radius: 15px; width: 90%; max-width: 450px; position: relative; }
+        .nama-klik { color: #0984e3; font-weight: bold; cursor: pointer; text-decoration: underline; display: inline-block; }
+        .btn-group { display: flex; gap: 5px; flex-wrap: nowrap; } 
+        .btn-icon { border: none; padding: 6px 9px; border-radius: 6px; color: white; cursor: pointer; font-size: 11px; flex-shrink: 0; }
+        .btn-print { background: var(--info); }
+        .btn-edit { background: var(--warning); }
+        .btn-delete { background: var(--danger); }
+
+        .status { padding: 5px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; color: white; text-align: center; display: inline-block; }
+        .status.belum { background-color: #e74c3c; }
+        .status.lunas { background-color: #2ecc71; }
+
+        #invoice-render { 
+            width: 320px; margin: 0 auto; background-color: white; padding: 15px;
+            font-family: 'Courier New', Courier, monospace; font-size: 13px; color: black;
+            box-sizing: border-box; border: 1px solid #ccc; position: relative;
+        }
+        .dashed-line { border-bottom: 1px dashed black; width: 100%; margin: 8px 0; }
+        .row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+        .col-left { width: 95px; text-align: left; flex-shrink: 0; }
+        .col-right { flex: 1; text-align: left; word-break: break-word; }
+        .row-item { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .col-item-name { flex: 1; text-align: left; padding-right: 10px; }
+        .col-item-qty { text-align: right; white-space: nowrap; }
+        .payment-box { border: 1px solid black; padding: 8px; margin-top: 15px; font-size: 11px; line-height: 1.4; }
+        .text-red { color: red; }
+        .text-bold { font-weight: bold; }
+        .stamp-lunas { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); border: 3px solid rgba(255, 0, 0, 0.3); color: rgba(255, 0, 0, 0.3); padding: 5px 15px; font-size: 40px; font-weight: 900; text-transform: uppercase; border-radius: 8px; pointer-events: none; }
+
+        .highlight-rekap { background: #f8f9fa; border: 1px solid #dfe6e9; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+        .highlight-rekap p { margin: 5px 0; font-size: 14px; display: flex; justify-content: space-between; color: #444; }
+        .highlight-rekap h3 { margin: 10px 0 0 0; color: #27ae60; border-top: 1px solid #ddd; padding-top: 10px; display: flex; justify-content: space-between; }
         
-        #invoice-render { padding: 20px; background: #fff; color: #000; border: 1px solid #000; font-family: monospace; }
-        .inv-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 15px; }
-        .inv-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; }
+        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); overflow-y: auto; padding-top: 20px; }
+        .modal-content { background: white; margin: auto; padding: 15px; border-radius: 15px; width: 95%; max-width: 400px; position: relative; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- Modal Invoice -->
-    <div id="modalInv" class="modal">
-        <div class="modal-content">
-            <div id="invoice-render">
-                <div class="inv-header">
-                    <img src="https://i.ibb.co.com/My64HjH3/1628178146767.png" alt="logo" style="width: 50px;">
-                    <h3 style="margin:0">BEKAS NODA TINTA</h3>
-                    <p>Jl. Pulanggeni V, Tipes, Kec. Serengan, Surakarta</p>
-                    <p>WA: 0895327031177 / 081578396970</p>
-                    <p id="inv-tgl-label" style="font-weight:bold; margin-top:10px; border-top:1px dashed #000; padding-top:5px;"></p>
-                </div>
-                <div id="inv-isi"></div>
-            </div>
-            <button class="action" onclick="unduhNotaJPG()">Download JPG</button>
-            <button class="action" style="background:#555" onclick="tutupModal()">Tutup</button>
-        </div>
-    </div>
+<div id="layar-tutup">
+    <h2>SISTEM ADMINISTRASI BNT</h2>
+    <p>Hubungkan ke basis data untuk mengelola pesanan.</p>
+    <button class="action" style="background:var(--accent); width:200px;" onclick="mintaAkses()">SAMBUNGKAN</button>
+</div>
 
-    <!-- Modal Review -->
-    <div id="modalReview" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-top:0; border-bottom:2px solid var(--primary); padding-bottom:10px;">Rincian Order</h3>
-            <div id="review-isi"></div>
-            <button class="action" style="background:#555; margin-top:15px;" onclick="tutupModal()">Tutup</button>
-        </div>
-    </div>
+<div class="container" id="main-app" style="display:none;">
+    <div id="online-status" class="status-bar offline">● MENGHUBUNGKAN...</div>
 
-    <div class="logo-box">
-        <img src="https://i.ibb.co.com/My64HjH3/1628178146767.png" alt="Logo">
-        <h2>Bekas Noda Tinta</h2>
-        <p>Jl. Pulanggeni V, Tipes, Kec. Serengan, Kota Surakarta</p>
-        <p>WA: 0895327031177 / 081578396970</p>
+    <div class="logo-box" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display:flex; align-items: center; gap:10px;">
+            <img src="https://i.ibb.co.com/My64HjH3/1628178146767.png" alt="logo">
+            <h2>BNT MANAGER</h2>
+        </div>
+        <button onclick="keluarSesi()" style="background:none; border:1px solid #ccc; padding:5px 10px; border-radius:5px; font-size:10px; cursor:pointer;">LOGOUT</button>
     </div>
 
     <div class="menu-tab">
-        <button id="nav-pesanan" class="active" onclick="bukaTab('pesanan')">Pesanan</button>
-        <button id="nav-beli" onclick="bukaTab('beli')">Beli</button>
-        <button id="nav-rekap" onclick="bukaTab('rekap')">Rekap</button>
-        <button id="nav-data" onclick="bukaTab('data')">Arsip</button>
-        <button id="nav-customer" onclick="bukaTab('customer')">Customer</button>
+        <button id="nav-pesanan" class="active" onclick="bukaTab('pesanan')">PESANAN</button>
+        <button id="nav-piutang" onclick="bukaTab('piutang')">PIUTANG</button>
+        <button id="nav-beli" onclick="bukaTab('beli')">BELI</button>
+        <button id="nav-rekap" onclick="bukaTab('rekap')">REKAP</button>
+        <button id="nav-customer" onclick="bukaTab('customer')">KONTAK</button>
+        <button id="nav-data" onclick="bukaTab('data')">ARSIP</button>
     </div>
 
     <!-- PESANAN -->
     <div id="pesanan" class="tab-content active">
         <div class="flex-row">
-            <div style="flex:2"><label>Nama Pelanggan</label><input type="text" id="p-nama" placeholder="Nama"></div>
-            <div><label>WhatsApp</label><input type="text" id="p-telp" placeholder="08xxx"></div>
+            <div style="flex:2"><label>Nama Pelanggan</label><input type="text" id="p-nama" list="cust-suggestions" oninput="autoFillWA(this.value)"></div>
+            <div><label>WhatsApp</label><input type="text" id="p-telp"></div>
         </div>
-        <label>Warna Sablon</label><input type="text" id="p-warna">
-
+        <label>Detail Sablon</label><input type="text" id="p-warna" placeholder="Warna/Sisi">
         <div id="item-list-container"></div>
-        <button class="btn-add-item" onclick="tambahBarisItem()">+ Tambah Jenis Cup</button>
-
+        <button class="btn-add-item" onclick="tambahBarisItem()">+ Tambah Item Cup</button>
         <div class="flex-row">
-            <div><label>Ongkir (Rp)</label><input type="text" id="p-ongkir" oninput="fDot(this); hitungP()" value="0"></div>
-            <div><label>Nominal DP (Rp)</label><input type="text" id="p-dp" oninput="fDot(this); hitungP()" value="0"></div>
+            <div><label>Ongkir</label><input type="text" id="p-ongkir" oninput="fDot(this); hitungP()" value="0"></div>
+            <div><label>Disk</label><input type="text" id="p-disc" oninput="fDot(this); hitungP()" value="0"></div>
+            <div><label>DP/Lunas</label><input type="text" id="p-dp" oninput="fDot(this); hitungP()" value="0"></div>
         </div>
+        <label>Total Tagihan</label>
+        <input type="text" id="p-total" readonly style="background:#f1f3f5; font-weight:800; font-size:20px; text-align:center;">
+        <div id="p-sisa-txt" style="text-align:center; font-weight:bold; color:var(--danger); font-size:14px; margin-bottom:15px;">Sisa: Rp 0</div>
+        <label>Catatan</label><textarea id="p-note" rows="2"></textarea>
         <div class="flex-row">
-            <div style="flex:2"><label>Total Tagihan</label><input type="text" id="p-total" readonly style="background:#eee; font-weight:bold;"></div>
+            <div><label>Tgl Pesan</label><input type="date" id="p-tgl-pesan"></div>
+            <div><label>Tgl Kirim</label><input type="date" id="p-tgl-kirim"></div>
         </div>
-        <div class="highlight" id="p-sisa-txt">Sisa Pelunasan: Rp 0</div>
-        
-        <div class="flex-row">
-            <div><label>Tgl Pesan</label><input type="date" id="p-tglp"></div>
-            <div><label>Tgl Kirim</label><input type="date" id="p-tglk"></div>
-            <div><label>Status</label><select id="p-status"><option>Antrian</option><option>Diproses</option><option>Selesai</option></select></div>
-        </div>
-
-        <button id="btn-save-p" class="action" onclick="simpanPesanan()">Simpan Pesanan</button>
-        
-        <div class="table-container">
-            <table>
-                <thead><tr><th>No Order</th><th>Nama</th><th>Status</th><th>Aksi</th></tr></thead>
-                <tbody id="body-pesanan"></tbody>
-            </table>
-        </div>
+        <div class="flex-row"><div><label>Status</label><select id="p-status"><option>Antrian</option><option>Diproses</option><option>Selesai</option></select></div></div>
+        <button class="action" onclick="simpanPesanan()" id="btn-main-save">SIMPAN PESANAN</button>
+        <div class="table-container"><table><thead><tr><th>Nota</th><th>Nama</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="body-pesanan"></tbody></table></div>
     </div>
+
+    <!-- PIUTANG -->
+    <div id="piutang" class="tab-content"><div class="table-container"><table><thead><tr><th>Bulan</th><th>Nama</th><th class="text-right">Sisa</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="body-piutang"></tbody></table></div></div>
 
     <!-- BELI -->
     <div id="beli" class="tab-content">
-        <label>Nama Barang</label><input type="text" id="b-nama">
-        <div class="flex-row">
-            <div><label>Qty</label><input type="text" id="b-qty" oninput="fDot(this); hitungB()"></div>
-            <div><label>Harga Satuan</label><input type="text" id="b-hrg" oninput="fDot(this); hitungB()"></div>
-        </div>
-        <div class="highlight" id="b-total-box">Total: Rp 0</div>
-        <button class="action" style="background:var(--info)" onclick="simpanBeli()">Simpan Pembelian</button>
-        <div class="table-container">
-            <table><thead><tr><th>Tgl</th><th>Barang</th><th>Total</th><th>Aksi</th></tr></thead><tbody id="body-beli"></tbody></table>
-        </div>
+        <div class="flex-row"><div style="flex:2"><label>Barang</label><input type="text" id="b-nama" list="item-suggestions"></div><div><label>Tgl</label><input type="date" id="b-tgl"></div></div>
+        <div class="flex-row"><div><label>Qty</label><input type="text" id="b-qty" oninput="fDot(this); hitungB()"></div><div><label>Harga</label><input type="text" id="b-hrg" oninput="fDot(this); hitungB()"></div></div>
+        <div id="b-total-box" style="font-weight:bold; margin-bottom:10px;">Total: Rp 0</div>
+        <button class="action" style="background:var(--info)" onclick="simpanBeli()">SIMPAN PENGELUARAN</button>
+        <div class="table-container" style="margin-top:10px;"><table><thead><tr><th>Tgl</th><th>Barang</th><th>Total</th><th>Aksi</th></tr></thead><tbody id="body-beli"></tbody></table></div>
     </div>
 
     <!-- REKAP -->
     <div id="rekap" class="tab-content"><div id="rekap-isi"></div></div>
 
-    <!-- DATA ARSIP -->
+    <!-- ARSIP -->
     <div id="data" class="tab-content">
-        <div class="card"><h3>Laporan Terarsip</h3></div>
+        <button class="action btn-excel" style="background:#27ae60; margin-bottom:10px;" onclick="unduhExcelMaster()">UNDUH MASTER EXCEL</button>
         <div id="arsip-list"></div>
+        <button class="action" style="background:var(--accent); margin-top:10px;" onclick="closingBulanan()">CLOSING BULANAN</button>
+        <button class="action" style="background:var(--danger); margin-top:10px;" onclick="resetTotal()">RESET SEMUA DATA</button>
     </div>
 
-    <!-- CUSTOMER -->
-    <div id="customer" class="tab-content">
-        <div class="table-container">
-            <table><thead><tr><th>Nama</th><th>WhatsApp</th><th>Aksi</th></tr></thead><tbody id="body-customer"></tbody></table>
+    <!-- KONTAK -->
+    <div id="customer" class="tab-content"><button class="action btn-excel" onclick="unduhExcelKontak()">UNDUH KONTAK (.CSV)</button><div class="table-container"><table><thead><tr><th>Nama</th><th>WA</th><th>Aksi</th></tr></thead><tbody id="body-customer"></tbody></table></div></div>
+
+    <datalist id="cust-suggestions"></datalist><datalist id="item-suggestions"></datalist>
+</div>
+
+<!-- MODAL INVOICE -->
+<div id="modalInv" class="modal">
+    <div class="modal-content">
+        <div id="invoice-render">
+            <div id="stempel-container"></div>
+            <div style="text-align: center; margin-bottom: 10px;">
+                <img src="https://i.ibb.co.com/My64HjH3/1628178146767.png" alt="logo" style="width: 50px; height: 50px; object-fit: contain;">
+                <div class="text-bold" style="font-size: 16px;">BEKAS NODA TINTA</div>
+                <div style="font-size: 9px;">Jl. Pulanggeni V, Tipes, Serengan, Surakarta</div>
+                <div style="font-size: 9px;">WA: 0895327031177 / 081578396970</div>
+            </div>
+            <div class="dashed-line"></div>
+            <div style="font-size:12px;">
+                <div class="row"><div>No nota</div><div>: <span id="v-no"></span></div></div>
+                <div class="row"><div>Nama cust</div><div>: <span id="v-nama"></span></div></div>
+                <div class="row"><div>Tgl pesan</div><div>: <span id="v-tgl-pesan"></span></div></div>
+                <div class="row"><div>tgl kirim</div><div>: <span id="v-tgl-kirim"></span></div></div>
+            </div>
+            <div class="dashed-line"></div>
+            <div class="row-item text-bold"><div>ITEM</div><div>QTY</div></div>
+            <div class="dashed-line"></div>
+            <div id="v-items-container"></div>
+            <div class="dashed-line"></div>
+            <div class="row-item"><div>ONGKIR</div><div><span id="v-ongkir"></span></div></div>
+            <div class="row-item"><div>DISKON</div><div>- <span id="v-disc"></span></div></div>
+            <div class="dashed-line"></div>
+            <div class="row-item text-bold" style="font-size: 15px;"><div>TOTAL</div><div><span id="v-total"></span></div></div>
+            <div class="row-item"><div>DP / LUNAS</div><div><span id="v-dp-val"></span></div></div>
+            <div class="row-item text-bold text-red"><div>SISA BAYAR</div><div><span id="v-sisa"></span></div></div>
+            <div id="v-note" style="font-size: 10px; margin-top: 8px; font-style: italic;"></div>
+            <div class="payment-box">
+                <div class="text-bold">REKENING PEMBAYARAN RESMI:</div>
+                BCA 7735308718 a/n Yohanes Budi Agung<br>
+                BRI 090201036223533 a/n Yohanes Budi Agung N
+                <div class="text-red" style="margin-top: 5px; font-size: 9px; font-weight: bold;">*Mohon konfirmasi sebelum/sesudah transfer. Pembayaran di luar rekening resmi bukan tanggung jawab kami.</div>
+            </div>
+            <div style="text-align: center; margin-top: 15px; font-size: 10px;">--- TERIMA KASIH ---</div>
+        </div>
+        <div style="margin-top:15px; display:flex; flex-direction:column; gap:10px;">
+            <button id="btn-share-all" class="action" style="background:#27ae60" onclick="bagikanNotaDanWA()">BAGIKAN NOTA KE WA</button>
+            <button class="action" style="background:var(--info)" onclick="window.print()">CETAK THERMAL</button>
+            <button class="action" style="background:#7f8c8d" onclick="tutupModal()">TUTUP</button>
         </div>
     </div>
 </div>
 
+<div id="modalReview" class="modal">
+    <div class="modal-content">
+        <h3 style="margin:0; border-bottom:2px solid var(--primary); padding-bottom:10px;">Review Pesanan</h3>
+        <div id="review-isi" style="margin-top:15px; font-size:14px; line-height:1.6;"></div>
+        <button class="action" style="background:#555; margin-top:20px;" onclick="tutupModal()">TUTUP</button>
+    </div>
+</div>
+
 <script>
-    // --- DATABASE ---
-    // Struktur database ditambah lastResetMonth untuk deteksi bulan otomatis
-    let DB = JSON.parse(localStorage.getItem('BNT_STABLE_AUTO_V1')) || { 
-        pesanan: [], beli: [], arsip: [], customers: [], lastResetMonth: new Date().getMonth() 
-    };
-    let editingOrderId = null;
+    const firebaseConfig = { apiKey: "AIzaSyAs-ef1-trRilCpNpSF9vwREZW37ZPbKiE", authDomain: "bntsablon.firebaseapp.com", databaseURL: "https://bntsablon-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bntsablon" };
+    firebase.initializeApp(firebaseConfig);
+    const dbRef = firebase.database().ref('bnt_production_v5');
+    const auth = firebase.auth();
+    let DB = { pesanan: [], beli: [], arsip: [], customers: [], piutang: [], bayarPiutangBulanIni: 0 };
+    let editId = null; let currentId = null;
 
-    const toRp = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
-    const toDot = (n) => new Intl.NumberFormat('id-ID').format(n);
-    const clean = (s) => parseFloat(s.toString().replace(/\D/g, '')) || 0;
-
-    function fDot(el) {
-        let v = el.value.replace(/\D/g, "");
-        el.value = v ? toDot(v) : "";
+    function mintaAkses() {
+        const u = prompt("Masukkan ID Sesi:"); if(!u) return;
+        const p = prompt("Masukkan Kode Akses:"); if(!p) return;
+        const fullId = u.includes('@') ? u : u + "@bnt.com";
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => auth.signInWithEmailAndPassword(fullId, p)).catch(() => alert("Akses Gagal!"));
     }
-
-    // --- FUNGSI DETEKSI BULAN BARU (OTOMATIS) ---
-    function checkMonthlyReset() {
-        const sekarang = new Date();
-        const bulanSekarang = sekarang.getMonth();
-        
-        if (DB.lastResetMonth !== undefined && DB.lastResetMonth !== bulanSekarang) {
-            // Jika ada data berjalan, tawarkan arsip
-            if (DB.pesanan.length > 0 || DB.beli.length > 0) {
-                let konfirmasi = confirm("Bulan baru terdeteksi! Apakah Anda ingin memindahkan data bulan lalu ke arsip dan memulai bulan baru dengan layar kosong?");
-                if (konfirmasi) {
-                    closing(); 
-                }
-            }
-            // Update penanda bulan terakhir
-            DB.lastResetMonth = bulanSekarang;
-            save();
+    function keluarSesi() { if(confirm("Logout?")) auth.signOut(); }
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            document.getElementById('layar-tutup').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            dbRef.on('value', (s) => {
+                const val = s.val();
+                if(val) { DB.pesanan = val.pesanan || []; DB.beli = val.beli || []; DB.arsip = val.arsip || []; DB.customers = val.customers || []; DB.piutang = val.piutang || []; DB.bayarPiutangBulanIni = val.bayarPiutangBulanIni || 0; }
+                document.getElementById('online-status').innerText = "● CLOUD SYNC AKTIF";
+                document.getElementById('online-status').className = "status-bar online";
+                refresh(); updateSaran();
+            });
+        } else {
+            document.getElementById('layar-tutup').style.display = 'flex';
+            document.getElementById('main-app').style.display = 'none';
         }
-    }
+    });
 
-    function bukaTab(id) {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.menu-tab button').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.getElementById('nav-' + id).classList.add('active');
-        if(id === 'rekap') renderRekap();
-        if(id === 'customer') renderCustomer();
-        if(id === 'data') renderArsip();
-    }
+    const toRp = (n) => "Rp " + new Intl.NumberFormat('id-ID').format(n);
+    const clean = (s) => parseInt(s.toString().replace(/\D/g, '')) || 0;
+    function fDot(el) { let v = el.value.replace(/\D/g, ""); el.value = v ? new Intl.NumberFormat('id-ID').format(v) : ""; }
+    function updateSaran() { document.getElementById('cust-suggestions').innerHTML = (DB.customers || []).map(c => `<option value="${c.nama}">`).join(''); const items = [...new Set((DB.beli || []).map(b => b.nama))]; document.getElementById('item-suggestions').innerHTML = items.map(i => `<option value="${i}">`).join(''); }
+    function autoFillWA(nama) { const c = DB.customers.find(x => x.nama === nama); if(c) document.getElementById('p-telp').value = c.telp; }
+    function bukaTab(id) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.menu-tab button').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); document.getElementById('nav-' + id).classList.add('active'); if(id === 'rekap') renderRekap(); if(id === 'customer') renderCustomer(); if(id === 'data') renderArsip(); if(id === 'piutang') renderPiutang(); }
 
-    function tambahBarisItem(data = null) {
-        const div = document.createElement('div');
-        div.className = 'item-card';
-        div.innerHTML = `
-            <button class="btn-del-item" onclick="this.parentElement.remove(); hitungP()">Hapus</button>
+    function tambahBarisItem(d = null) {
+        const div = document.createElement('div'); div.className = 'item-card';
+        div.innerHTML = `<button class="btn-del-item" onclick="this.parentElement.remove(); hitungP()">Hapus</button>
             <div class="flex-row">
-                <div style="flex:1.5"><label>Merk Cup</label><input type="text" class="i-merk" value="${data?data.merk:''}"></div>
-                <div style="flex:2"><label>Jenis / Ukuran</label><input type="text" class="i-jenis" value="${data?data.jenis:''}"></div>
+                <div style="flex:1"><label>Merk</label><input type="text" class="i-merk" value="${d? (d.merk || d.nama || '') : ''}" placeholder="Merk"></div>
+                <div style="flex:1"><label>Jenis Cup</label><input type="text" class="i-jenis" value="${d? (d.jenis || '') : ''}" placeholder="Jenis"></div>
             </div>
             <div class="flex-row">
-                <div><label>Qty (Pcs)</label><input type="text" class="i-qty" oninput="fDot(this); hitungP()" value="${data?toDot(data.qty):'0'}"></div>
-                <div><label>Hrg /1000</label><input type="text" class="i-hrg" oninput="fDot(this); hitungP()" value="${data?toDot(data.hrg):'0'}"></div>
+                <div><label>Qty</label><input type="text" class="i-qty" oninput="fDot(this); hitungP()" value="${d?d.qty:''}"></div>
+                <div><label>Harga /pcs</label><input type="text" class="i-hrg" oninput="fDot(this); hitungP()" value="${d?d.hrg:''}"></div>
             </div>`;
         document.getElementById('item-list-container').appendChild(div);
     }
 
-    function hitungP() {
-        let itemsTotal = 0;
-        document.querySelectorAll('.item-card').forEach(c => {
-            itemsTotal += (clean(c.querySelector('.i-qty').value) / 1000) * clean(c.querySelector('.i-hrg').value);
-        });
-        let total = itemsTotal + clean(document.getElementById('p-ongkir').value);
-        document.getElementById('p-total').value = toRp(total);
-        document.getElementById('p-sisa-txt').innerText = "Sisa Pelunasan: " + toRp(total - clean(document.getElementById('p-dp').value));
-        return total;
+    function hitungP() { 
+        let sub = 0; document.querySelectorAll('.item-card').forEach(c => { sub += clean(c.querySelector('.i-qty').value) * clean(c.querySelector('.i-hrg').value); }); 
+        let total = sub + clean(document.getElementById('p-ongkir').value) - clean(document.getElementById('p-disc').value); 
+        document.getElementById('p-total').value = toRp(total); 
+        document.getElementById('p-sisa-txt').innerText = "Sisa Tagihan: " + toRp(total - clean(document.getElementById('p-dp').value)); 
+        return total; 
     }
-
-    function hitungB() {
-        let t = clean(document.getElementById('b-qty').value) * clean(document.getElementById('b-hrg').value);
-        document.getElementById('b-total-box').innerText = "Total: " + toRp(t);
-        return t;
-    }
+    function hitungB() { let t = clean(document.getElementById('b-qty').value) * clean(document.getElementById('b-hrg').value); document.getElementById('b-total-box').innerText = "Total: " + toRp(t); return t; }
 
     function simpanPesanan() {
-        const nama = document.getElementById('p-nama').value;
-        const telp = document.getElementById('p-telp').value;
-        if(!nama) return alert("Nama Wajib!");
+        const nama = document.getElementById('p-nama').value; if(!nama) return alert("Nama wajib!");
+        let items = []; document.querySelectorAll('.item-card').forEach(c => { let m = c.querySelector('.i-merk').value; let j = c.querySelector('.i-jenis').value; if(m) items.push({ merk: m, jenis: j, qty: c.querySelector('.i-qty').value, hrg: c.querySelector('.i-hrg').value }); });
+        let initialDp = clean(document.getElementById('p-dp').value);
+        let history = initialDp > 0 ? [{ tgl: new Date().toLocaleDateString('id-ID'), nominal: initialDp }] : [];
+        const obj = { id: editId || Date.now(), no: editId ? DB.pesanan.find(x=>x.id==editId).no : "BNT-" + String(DB.pesanan.length + 1).padStart(3, '0'), nama, telp: document.getElementById('p-telp').value, warna: document.getElementById('p-warna').value, items, ongkir: clean(document.getElementById('p-ongkir').value), disc: clean(document.getElementById('p-disc').value), dp: initialDp, history: history, total: hitungP(), note: document.getElementById('p-note').value, tgl_p: document.getElementById('p-tgl-pesan').value || new Date().toISOString().split('T')[0], tgl_k: document.getElementById('p-tgl-kirim').value || "", status: document.getElementById('p-status').value };
+        if(editId) { let idx = DB.pesanan.findIndex(x=>x.id==editId); DB.pesanan[idx] = obj; editId = null; document.getElementById('btn-main-save').innerText="SIMPAN PESANAN"; } else { DB.pesanan.push(obj); }
+        let cIdx = DB.customers.findIndex(c => c.nama === nama); if(cIdx === -1) DB.customers.push({nama, telp: obj.telp}); else DB.customers[cIdx].telp = obj.telp;
+        dbRef.set(DB).then(() => { resetForm(); alert("Berhasil!"); });
+    }
 
-        let items = [];
-        document.querySelectorAll('.item-card').forEach(c => {
-            items.push({
-                merk: c.querySelector('.i-merk').value,
-                jenis: c.querySelector('.i-jenis').value,
-                qty: clean(c.querySelector('.i-qty').value),
-                hrg: clean(c.querySelector('.i-hrg').value)
-            });
+    function bukaInvoice(id) {
+        currentId = id; const p = DB.pesanan.find(x => x.id == id) || DB.piutang.find(x => x.id == id);
+        if(!p) return;
+        document.getElementById('v-no').innerText = p.no; document.getElementById('v-nama').innerText = p.nama;
+        document.getElementById('v-tgl-pesan').innerText = p.tgl_p; document.getElementById('v-tgl-kirim').innerText = p.tgl_k || "-";
+        document.getElementById('v-ongkir').innerText = toRp(p.ongkir); document.getElementById('v-disc').innerText = toRp(p.disc);
+        document.getElementById('v-total').innerText = toRp(p.total); document.getElementById('v-dp-val').innerText = toRp(p.dp);
+        let sisa = p.total - p.dp; document.getElementById('v-sisa').innerText = toRp(sisa);
+        document.getElementById('v-note').innerText = p.note ? "Note: " + p.note : "";
+        document.getElementById('stempel-container').innerHTML = sisa <= 0 ? '<div class="stamp-lunas">LUNAS</div>' : '';
+        let h = ''; p.items.forEach(it => { h += `<div class="row-item"><div class="col-item-name"><span class="text-bold">${it.merk || it.nama} ${it.jenis || ''}</span><br><span style="font-size:10px">@${toRp(clean(it.hrg))} /pcs</span></div><div class="col-item-qty">${it.qty}</div></div>`; });
+        document.getElementById('v-items-container').innerHTML = h; document.getElementById('modalInv').style.display = 'block';
+    }
+
+    function bagikanNotaDanWA() {
+        const p = DB.pesanan.find(x => x.id == currentId) || DB.piutang.find(x => x.id == currentId); if(!p) return;
+        const teksWA = `Halo *${p.nama}*,\n\nTerima kasih telah order di *Bekas Noda Tinta*.\n\nSisa Tagihan: ${toRp(p.total - p.dp)}\n\nSukses selalu!`;
+        html2canvas(document.getElementById('invoice-render'), { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false }).then(canvas => { 
+            canvas.toBlob(function(blob) {
+                const file = new File([blob], 'Nota.png', { type: 'image/png' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: 'Nota', text: teksWA }); }
+                else { window.open(`https://wa.me/${p.telp.replace(/\D/g,'').replace(/^0/,'62')}?text=${encodeURIComponent(teksWA)}`); }
+            }, 'image/png');
         });
+    }
 
-        const orderData = {
-            id: editingOrderId || Date.now(),
-            no: editingOrderId ? DB.pesanan.find(x => x.id === editingOrderId).no : "BNT-" + String(DB.pesanan.length + 1).padStart(3, '0'),
-            nama, telp, warna: document.getElementById('p-warna').value,
-            items, ongkir: clean(document.getElementById('p-ongkir').value),
-            dp: clean(document.getElementById('p-dp').value),
-            total: hitungP(), tglp: document.getElementById('p-tglp').value,
-            tglk: document.getElementById('p-tglk').value || "-", status: document.getElementById('p-status').value
-        };
-
-        if(editingOrderId) {
-            const idx = DB.pesanan.findIndex(x => x.id === editingOrderId);
-            DB.pesanan[idx] = orderData;
-            editingOrderId = null;
-            document.getElementById('btn-save-p').innerText = "Simpan Pesanan";
-            document.getElementById('btn-save-p').classList.remove('edit-active');
-        } else {
-            DB.pesanan.push(orderData);
+    function renderPiutang() {
+        const body = document.getElementById('body-piutang'); body.innerHTML = '';
+        if(!DB.piutang) DB.piutang = [];
+        DB.piutang.forEach((p, index) => {
+            let sisa = p.total - p.dp;
+            if(sisa > 0) body.innerHTML += `<tr><td>${p.bulanAsal || '-'}</td><td class="nama-klik" onclick="reviewP(${p.id}, true)">${p.nama}</td><td class="text-right"><b>${new Intl.NumberFormat('id-ID').format(sisa)}</b></td><td><span class="status belum">Belum Lunas</span></td><td><button class="btn-lunas" onclick="tandaiLunas(${index})">Bayar</button></td></tr>`;
+        });
+    }
+    function tandaiLunas(index) {
+        let p = DB.piutang[index]; let sisa = p.total - p.dp;
+        let bayar = prompt(`Sisa piutang ${p.nama}: Rp ${new Intl.NumberFormat('id-ID').format(sisa)}\nMasukkan nominal:`, sisa);
+        if (bayar !== null) {
+            let nominal = parseInt(bayar.replace(/\D/g, '')) || 0;
+            if(nominal > 0) { p.dp += nominal; if(!p.history) p.history = []; p.history.push({ tgl: new Date().toLocaleDateString('id-ID'), nominal: nominal }); DB.bayarPiutangBulanIni = (DB.bayarPiutangBulanIni || 0) + nominal; dbRef.set(DB).then(() => { renderPiutang(); }); }
         }
-
-        if(!DB.customers.find(c => c.telp === telp)) DB.customers.push({nama, telp});
-        save(); refresh(); resetFormP(); alert("Berhasil!");
     }
-
-    function editFull(id) {
-        editingOrderId = id;
-        const p = DB.pesanan.find(x => x.id == id);
-        document.getElementById('p-nama').value = p.nama;
-        document.getElementById('p-telp').value = p.telp;
-        document.getElementById('p-warna').value = p.warna;
-        document.getElementById('p-ongkir').value = toDot(p.ongkir);
-        document.getElementById('p-dp').value = toDot(p.dp);
-        document.getElementById('p-tglp').value = p.tglp;
-        document.getElementById('p-tglk').value = p.tglk;
-        document.getElementById('p-status').value = p.status;
-        document.getElementById('item-list-container').innerHTML = '';
-        p.items.forEach(it => tambahBarisItem(it));
-        hitungP();
-        document.getElementById('btn-save-p').innerText = "UPDATE DATA (SEDANG EDIT)";
-        document.getElementById('btn-save-p').classList.add('edit-active');
-        bukaTab('pesanan');
-        window.scrollTo(0,0);
+    function renderRekap() { 
+        let pen = DB.pesanan.reduce((a, b) => a + b.total, 0); 
+        let realMasuk = DB.pesanan.reduce((a, b) => a + clean(b.dp), 0);
+        let penPiutang = DB.bayarPiutangBulanIni || 0;
+        let bel = (DB.beli || []).reduce((a, b) => a + b.total, 0); 
+        let totalCup = DB.pesanan.reduce((sum, p) => sum + p.items.reduce((iSum, it) => iSum + clean(it.qty), 0), 0);
+        let sisaPiutangLama = (DB.piutang || []).reduce((a, b) => a + (clean(b.total) - clean(b.dp)), 0);
+        let margin = pen > 0 ? (((pen - bel) / pen) * 100).toFixed(1) : 0;
+        document.getElementById('rekap-isi').innerHTML = `<div class="highlight-rekap"><p><span>Omzet Pesanan Baru:</span> <b>${toRp(pen)}</b></p><p><span>Uang Masuk (Real):</span> <b style="color:#27ae60">${toRp(realMasuk + penPiutang)}</b></p><p><span>Total Piutang Saat Ini:</span> <b style="color:#e74c3c">${toRp(sisaPiutangLama + (pen - realMasuk))}</b></p><hr><p><span>Total Pengeluaran:</span> <b>${toRp(bel)}</b></p><p><span>Total Cup Terjual:</span> <b>${new Intl.NumberFormat('id-ID').format(totalCup)} pcs</b></p><p><span>Margin (Omzet):</span> <b>${margin}%</b></p><hr><h3><span>LABA REAL:</span> <span>${toRp((realMasuk + penPiutang) - bel)}</span></h3></div>`; 
     }
-
-    function resetFormP() {
-        ["p-nama","p-telp","p-warna","p-ongkir","p-dp","p-tglp","p-tglk","p-total"].forEach(id => document.getElementById(id).value = "");
-        document.getElementById('item-list-container').innerHTML = '';
-        tambahBarisItem();
-    }
-
-    function simpanBeli() {
-        if(!document.getElementById('b-nama').value) return alert("Barang Wajib!");
-        DB.beli.push({
-            id: Date.now(), tgl: new Date().toISOString().split('T')[0],
-            nama: document.getElementById('b-nama').value,
-            qty: clean(document.getElementById('b-qty').value),
-            hrg: clean(document.getElementById('b-hrg').value), total: hitungB()
-        });
-        save(); refresh(); alert("Beli disimpan!");
-        ["b-nama","b-qty","b-hrg"].forEach(id => document.getElementById(id).value = "");
-    }
-
-    function save() { localStorage.setItem('BNT_STABLE_AUTO_V1', JSON.stringify(DB)); }
-
     function refresh() {
-        const tp = document.getElementById('body-pesanan'); tp.innerHTML = '';
-        DB.pesanan.forEach(p => {
-            tp.innerHTML += `<tr><td>${p.no}</td><td><span class="nama-klik" onclick="reviewP(${p.id})">${p.nama}</span></td><td>${p.status}</td>
-            <td class="btn-group">
-                <button style="background:var(--accent)" onclick="wa(${p.id})">WA</button>
-                <button style="background:var(--info)" onclick="invoiceP(${p.id})">⎙</button>
-                <button style="background:var(--warning)" onclick="editFull(${p.id})">E</button>
-                <button style="background:var(--danger)" onclick="hapusData(${p.id}, 'p')">X</button>
-            </td></tr>`;
-        });
-        const tb = document.getElementById('body-beli'); tb.innerHTML = '';
-        DB.beli.forEach((b, i) => {
-            tb.innerHTML += `<tr><td>${b.tgl}</td><td>${b.nama}</td><td>${toRp(b.total)}</td>
-            <td class="btn-group"><button style="background:var(--danger)" onclick="hapusData(${i}, 'b')">X</button></td></tr>`;
-        });
+        const b = document.getElementById('body-pesanan'); b.innerHTML = '';
+        DB.pesanan.forEach(p => { b.innerHTML += `<tr><td><b>${p.no}</b></td><td class="col-nama"><span class="nama-klik" onclick="reviewP(${p.id})">${p.nama}</span></td><td><small>${p.status}</small></td><td><div class="btn-group"><button class="btn-icon btn-print" onclick="bukaInvoice(${p.id})">⎙</button><button class="btn-icon btn-edit" onclick="editP(${p.id})">E</button><button class="btn-icon btn-delete" onclick="hapusData(${p.id}, 'p')">X</button></div></td></tr>`; });
+        const bb = document.getElementById('body-beli'); bb.innerHTML = '';
+        if(DB.beli) DB.beli.forEach((bl, i) => { bb.innerHTML += `<tr><td>${bl.tgl}</td><td>${bl.nama}</td><td>${toRp(bl.total)}</td><td><button class="btn-icon btn-delete" onclick="hapusData(${i}, 'b')">X</button></td></tr>`; });
+    }
+    function reviewP(id, isPiutang = false) { 
+        const p = isPiutang ? DB.piutang.find(x => x.id == id) : DB.pesanan.find(x => x.id == id); if(!p) return; 
+        let its = p.items.map(it => `• ${it.merk || it.nama} ${it.jenis || ''} (${it.qty} pcs)`).join('<br>'); 
+        let histHTML = ''; if (p.history && p.history.length > 0) { let trs = p.history.map(h => `<tr><td>${h.tgl}</td><td align="right">${new Intl.NumberFormat('id-ID').format(h.nominal)}</td></tr>`).join(''); histHTML = `<hr><b>Riwayat Bayar:</b><table class="table-history"><tr><th>Tgl</th><th>Nominal</th></tr>${trs}</table>`; }
+        document.getElementById('review-isi').innerHTML = `<b>Status:</b> ${p.status}<br><b>Nama:</b> ${p.nama}<br><hr><b>Items:</b><br>${its}<br><hr><b>Bill:</b> ${toRp(p.total)}<br><b>Sisa:</b> ${toRp(p.total - p.dp)}${histHTML}`; 
+        document.getElementById('modalReview').style.display = 'block'; 
     }
 
-    function wa(id) {
-        const p = DB.pesanan.find(x => x.id == id);
-        let itemsTxt = p.items.map(it => `- ${it.merk} ${it.jenis} (${toDot(it.qty)} pcs)`).join('%0A');
-        let rawTelp = p.telp.replace(/\D/g, '');
-        let finalTelp = rawTelp.startsWith('0') ? '62' + rawTelp.slice(1) : rawTelp;
-        const msg = `*ORDER BNT*%0ANo: ${p.no}%0ANama: ${p.nama}%0ASablon: ${p.warna}%0AItems:%0A${itemsTxt}%0AStatus: ${p.status}%0ATgl Kirim: ${p.tglk}`;
-        window.open(`https://wa.me/${finalTelp}?text=${msg}`);
+    function renderCustomer() { const b = document.getElementById('body-customer'); b.innerHTML = ''; DB.customers.forEach((c, i) => { b.innerHTML += `<tr><td class="col-nama"><b>${c.nama}</b></td><td>${c.telp}</td><td><div class="btn-group"><button class="btn-icon btn-print" onclick="window.open('https://wa.me/${c.telp.replace(/\D/g,'').replace(/^0/,'62')}')">WA</button><button class="btn-icon btn-delete" onclick="hapusCust(${i})">X</button></div></td></tr>`; }); }
+    function closingBulanan() { if(!confirm("Closing?")) return; const bulanSekarang = new Date().toLocaleDateString('id-ID', {month:'long', year:'numeric'}); let pen = DB.pesanan.reduce((a, b) => a + b.total, 0); let realMasuk = DB.pesanan.reduce((a, b) => a + clean(b.dp), 0); let penPiutang = DB.bayarPiutangBulanIni || 0; let bel = (DB.beli || []).reduce((a, b) => a + b.total, 0); let totalCup = DB.pesanan.reduce((sum, p) => sum + p.items.reduce((iSum, it) => iSum + clean(it.qty), 0), 0); let sisaPiutangLama = (DB.piutang || []).reduce((a, b) => a + (clean(b.total) - clean(b.dp)), 0); DB.pesanan.forEach(p => { if(clean(p.total) > clean(p.dp)) { p.bulanAsal = bulanSekarang; if(!DB.piutang) DB.piutang = []; DB.piutang.push(p); } }); DB.arsip.push({ tgl: bulanSekarang, omzet: pen, uangMasuk: realMasuk + penPiutang, pengeluaran: bel, laba: (realMasuk + penPiutang) - bel, cup: totalCup, piutang: (pen - realMasuk) + sisaPiutangLama }); DB.pesanan = []; DB.beli = []; DB.bayarPiutangBulanIni = 0; DB.piutang = DB.piutang.filter(x => clean(x.total) > clean(x.dp)); dbRef.set(DB).then(() => alert("Berhasil Closing!")); }
+    function resetTotal() { if(confirm("Hapus semua?")) { DB = { pesanan: [], beli: [], arsip: [], customers: [], piutang: [], bayarPiutangBulanIni: 0 }; dbRef.set(DB); } }
+    function renderArsip() { const d = document.getElementById('arsip-list'); d.innerHTML = ''; if(DB.arsip) DB.arsip.forEach(a => { d.innerHTML += `<div class="highlight-rekap">Periode: <b>${a.tgl}</b><br>Laba Real: <b style="color:green">${toRp(a.laba)}</b> | Omzet: ${toRp(a.omzet || 0)}</div>`; }); }
+
+    function unduhExcelMaster() {
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(DB.pesanan.map(p => ({ "No Nota": p.no, "Nama": p.nama, "WA": p.telp, "Detail": p.warna, "Items": p.items.map(it => `${it.merk} ${it.jenis} (${it.qty})`).join(', '), "Total": p.total, "Terbayar": p.dp, "Tgl": p.tgl_p, "Status": p.status }))), "Pesanan Aktif");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((DB.piutang || []).map(p => ({ "Bulan": p.bulanAsal, "Nama": p.nama, "Total": p.total, "Terbayar": p.dp, "Sisa": p.total - p.dp }))), "Piutang Usaha");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((DB.beli || []).map(b => ({ "Tgl": b.tgl, "Barang": b.nama, "Total": b.total }))), "Pembelian");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((DB.arsip || []).map(a => ({ "Periode": a.tgl, "Omzet": a.omzet, "Uang Masuk": a.uangMasuk, "Pengeluaran": a.pengeluaran, "Laba": a.laba, "Cup": a.cup, "Sisa Piutang": a.piutang }))), "Laporan Bulanan");
+        XLSX.writeFile(wb, `BNT_Laporan_Lengkap.xlsx`);
     }
-
-    function reviewP(id) {
-        const p = DB.pesanan.find(x => x.id == id);
-        let its = p.items.map(it => `<div>• ${it.merk} ${it.jenis} (${toDot(it.qty)} pcs)</div>`).join('');
-        document.getElementById('review-isi').innerHTML = `
-            <div class="inv-row"><span>No Order:</span><b>${p.no}</b></div>
-            <div class="inv-row"><span>Nama:</span><span>${p.nama}</span></div><hr>
-            <div><b>Rincian Item:</b><br>${its}</div><hr>
-            <div class="inv-row"><span>Ongkir:</span><b>${toRp(p.ongkir)}</b></div>
-            <div class="inv-row"><span>Total:</span><b>${toRp(p.total)}</b></div>
-            <div class="inv-row" style="background:#fff3cd; padding:5px"><span>Sisa:</span><b>${toRp(p.total - p.dp)}</b></div>
-            <div class="inv-row"><span>Tgl Kirim:</span><b>${p.tglk}</b></div>`;
-        document.getElementById('modalReview').style.display = 'block';
-    }
-
-    function invoiceP(id) {
-        const p = DB.pesanan.find(x => x.id == id);
-        document.getElementById('inv-tgl-label').innerText = "Tgl: " + p.tglp;
-        let its = p.items.map(it => `
-            <div class="inv-row"><span>${it.merk} ${it.jenis} (${toDot(it.qty)})</span><span>${toRp((it.qty/1000)*it.hrg)}</span></div>
-            <div style="font-size:9px; color:#555; margin-bottom:5px">Harga: ${toRp(it.hrg)}/1000</div>`).join('');
-        document.getElementById('inv-isi').innerHTML = `
-            <div class="inv-row"><span>No: ${p.no}</span><span>Cust: ${p.nama}</span></div>
-            <div style="border-top:1px solid #000; padding-top:10px">${its}</div>
-            <div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px">
-                <div class="inv-row"><span>Ongkir:</span><span>${toRp(p.ongkir)}</span></div>
-                <div class="inv-row"><span>Total:</span><b>${toRp(p.total)}</b></div>
-                <div class="inv-row"><span>DP:</span><span>${toRp(p.dp)}</span></div>
-                <div class="inv-row" style="color:red"><span>Sisa:</span><b>${toRp(p.total - p.dp)}</b></div>
-            </div>`;
-        document.getElementById('modalInv').style.display = 'block';
-    }
-
-    function unduhNotaJPG() {
-        const box = document.getElementById('invoice-render');
-        html2canvas(box, { scale: 2 }).then(canvas => {
-            const a = document.createElement('a');
-            a.download = 'Nota_BNT.jpg';
-            a.href = canvas.toDataURL('image/jpeg');
-            a.click();
-        });
-    }
-
-    function renderRekap() {
-        let pen = DB.pesanan.reduce((a, b) => a + b.total, 0);
-        let bel = DB.beli.reduce((a, b) => a + b.total, 0);
-        document.getElementById('rekap-isi').innerHTML = `
-            <div class="card">
-                <h3>Rekap Berjalan (Bulan Ini)</h3>
-                <p>Pendapatan: <b>${toRp(pen)}</b></p>
-                <p>Pembelian: <b>${toRp(bel)}</b></p><hr>
-                <p style="color:green; font-size:16px">Laba: <b>${toRp(pen-bel)}</b></p>
-                <button class="action" style="background:var(--secondary); margin-top:20px" onclick="closing()">CLOSING & ARSIP DATA (Awal Bulan Baru)</button>
-            </div>`;
-    }
-
-    function closing() {
-        const pen = DB.pesanan.reduce((a, b) => a + b.total, 0);
-        const bel = DB.beli.reduce((a, b) => a + b.total, 0);
-        DB.arsip.push({ 
-            bln: new Date().toLocaleDateString('id-ID', {month:'long', year:'numeric'}), 
-            pen, bel, laba: pen-bel 
-        });
-        DB.pesanan = []; DB.beli = [];
-        save(); refresh(); bukaTab('data');
-    }
-
-    function renderArsip() {
-        const al = document.getElementById('arsip-list'); al.innerHTML = '';
-        DB.arsip.forEach(a => al.innerHTML += `<div class="card"><b>Periode: ${a.bln}</b><br>Laba Bersih: ${toRp(a.laba)}</div>`);
-    }
-
-    function renderCustomer() {
-        const bc = document.getElementById('body-customer'); bc.innerHTML = '';
-        DB.customers.forEach((c, i) => {
-            let waT = c.telp.replace(/\D/g, '');
-            let waF = waT.startsWith('0') ? '62' + waT.slice(1) : waT;
-            bc.innerHTML += `<tr><td>${c.nama}</td><td>${c.telp}</td>
-            <td class="btn-group">
-                <button style="background:var(--accent)" onclick="window.open('https://wa.me/${waF}')">Chat</button>
-                <button style="background:var(--danger)" onclick="hapusC(${i})">Hapus</button>
-            </td></tr>`;
-        });
-    }
-
-    function hapusC(i) { if(confirm("Hapus data customer?")) { DB.customers.splice(i, 1); save(); renderCustomer(); } }
-
-    function hapusData(id, type) {
-        if(!confirm("Hapus data?")) return;
-        if(type === 'p') DB.pesanan = DB.pesanan.filter(x => x.id != id);
-        else DB.beli.splice(id, 1);
-        save(); refresh();
-    }
-
-    function tutupModal() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
-    
-    window.onload = function() { 
-        checkMonthlyReset(); // Cek bulan baru saat aplikasi dibuka
-        if(!DB.pesanan.length) tambahBarisItem(); 
-        refresh(); 
-        bukaTab('pesanan'); 
-    };
+    function unduhExcelKontak() { let csv = "Nama,WhatsApp\n"; (DB.customers || []).forEach(c => { csv += `"${c.nama}","${c.telp}"\n`; }); const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'Kontak_BNT.csv'; a.click(); }
+    function simpanBeli() { if(!document.getElementById('b-nama').value) return; if(!DB.beli) DB.beli = []; DB.beli.push({ tgl: document.getElementById('b-tgl').value || new Date().toISOString().split('T')[0], nama: document.getElementById('b-nama').value, total: clean(document.getElementById('b-qty').value) * clean(document.getElementById('b-hrg').value) }); dbRef.set(DB).then(() => { document.getElementById('b-nama').value=''; document.getElementById('b-qty').value=''; document.getElementById('b-hrg').value=''; alert("Tersimpan!"); }); }
+    function hapusData(id, type) { if(!confirm("Hapus?")) return; if(type==='p') DB.pesanan=DB.pesanan.filter(x=>x.id!=id); else DB.beli.splice(id, 1); dbRef.set(DB); }
+    function hapusCust(i) { if(confirm("Hapus?")) { DB.customers.splice(i, 1); dbRef.set(DB); } }
+    function editP(id) { editId = id; const p = DB.pesanan.find(x => x.id == id); document.getElementById('p-nama').value = p.nama; document.getElementById('p-telp').value = p.telp; document.getElementById('p-warna').value = p.warna; document.getElementById('p-ongkir').value = new Intl.NumberFormat('id-ID').format(p.ongkir); document.getElementById('p-disc').value = new Intl.NumberFormat('id-ID').format(p.disc); document.getElementById('p-dp').value = new Intl.NumberFormat('id-ID').format(p.dp); document.getElementById('p-note').value = p.note; document.getElementById('p-tgl-pesan').value = p.tgl_p; document.getElementById('p-tgl-kirim').value = p.tgl_k; document.getElementById('p-status').value = p.status; document.getElementById('item-list-container').innerHTML = ''; p.items.forEach(it => tambahBarisItem(it)); hitungP(); bukaTab('pesanan'); document.getElementById('btn-main-save').innerText="UPDATE PESANAN";}
+    function resetForm() { document.getElementById('p-nama').value=''; document.getElementById('p-telp').value=''; document.getElementById('p-warna').value=''; document.getElementById('p-ongkir').value='0'; document.getElementById('p-disc').value='0'; document.getElementById('p-dp').value='0'; document.getElementById('p-note').value=''; document.getElementById('item-list-container').innerHTML=''; tambahBarisItem(); hitungP(); }
+    function tutupModal() { document.getElementById('modalInv').style.display='none'; document.getElementById('modalReview').style.display='none'; }
+    window.onload = () => { if(DB.pesanan.length === 0) tambahBarisItem(); document.getElementById('p-tgl-pesan').valueAsDate = new Date(); document.getElementById('b-tgl').valueAsDate = new Date(); };
 </script>
+
 </body>
 </html>
