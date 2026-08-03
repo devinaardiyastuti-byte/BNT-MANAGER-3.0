@@ -21,7 +21,7 @@
         /* Layar Akses */
         #layar-tutup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; display: flex; align-items: center; justify-content: center; z-index: 99999; flex-direction: column; color: white; text-align: center; padding: 20px; }
         
-        /* Logo Fix */
+        /* Logo & UI */
         .logo-box img { width: 60px !important; height: 60px !important; object-fit: contain; border-radius: 10px; }
         .logo-box h2 { margin: 0; font-size: 18px; font-weight: 800; color: var(--primary); }
 
@@ -63,7 +63,7 @@
         .status.lunas { background-color: #2ecc71; }
         .btn-lunas { background-color: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; }
 
-        /* Invoice Thermal 320px */
+        /* Invoice */
         #invoice-render { 
             width: 320px; margin: 0 auto; background-color: white; padding: 15px;
             font-family: 'Courier New', Courier, monospace; font-size: 13px; color: black;
@@ -81,7 +81,7 @@
         .text-bold { font-weight: bold; }
         .stamp-lunas { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); border: 3px solid rgba(255, 0, 0, 0.3); color: rgba(255, 0, 0, 0.3); padding: 5px 15px; font-size: 40px; font-weight: 900; text-transform: uppercase; border-radius: 8px; pointer-events: none; }
 
-        /* Rekap */
+        /* Rekap Styling (Sesuai Gambar) */
         .highlight-rekap { background: #f8f9fa; border: 1px solid #dfe6e9; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
         .highlight-rekap p { margin: 5px 0; font-size: 14px; display: flex; justify-content: space-between; color: #444; }
         .highlight-rekap h3 { margin: 10px 0 0 0; color: #27ae60; border-top: 1px solid #ddd; padding-top: 10px; display: flex; justify-content: space-between; }
@@ -102,14 +102,13 @@
 </head>
 <body>
 
-<!-- PINTU AKSES -->
 <div id="layar-tutup">
     <div class="logo-box" style="margin-bottom: 20px;">
         <img src="https://i.ibb.co.com/My64HjH3/1628178146767.png" alt="logo" style="filter: brightness(0) invert(1);">
     </div>
     <h2>BNT MANAGER PRO</h2>
-    <p>Silakan hubungkan ke basis data.</p>
-    <button class="action" style="background:var(--accent); width:220px;" onclick="mintaAkses()">HUBUNGKAN DATA</button>
+    <p>Hubungkan ke basis data untuk mengelola pesanan.</p>
+    <button class="action" style="background:var(--accent); width:200px;" onclick="mintaAkses()">HUBUNGKAN DATA</button>
 </div>
 
 <div class="container" id="main-app" style="display:none;">
@@ -120,7 +119,7 @@
             <img src="https://i.ibb.co.com/My64HjH3/1628178146767.png" alt="logo">
             <h2>BNT MANAGER</h2>
         </div>
-        <button onclick="keluarSesi()" style="background:none; border:1px solid #ccc; padding:5px 10px; border-radius:5px; font-size:10px; cursor:pointer;">KELUAR</button>
+        <button onclick="keluarSesi()" style="background:none; border:1px solid #ccc; padding:5px 10px; border-radius:5px; font-size:10px; cursor:pointer;">LOGOUT</button>
     </div>
 
     <div class="menu-tab">
@@ -177,7 +176,7 @@
         <button class="action" style="background:var(--danger); margin-top:10px;" onclick="resetTotal()">RESET SEMUA DATA</button>
     </div>
     
-    <div id="customer" class="tab-content"><button class="action btn-excel" onclick="unduhExcelKontak()">UNDUH KONTAK (.CSV)</button><div class="table-container"><table><thead><tr><th>Nama</th><th>WA</th><th>Aksi</th></tr></thead><tbody id="body-customer"></tbody></table></div></div>
+    <div id="customer" class="tab-content"><button class="action btn-excel" onclick="unduhExcelKontak()">UNDUH KONTAK (.CSV)</button><div class="table-container"><table><thead><tr><th class="col-nama">Nama Pelanggan</th><th>WhatsApp</th><th>Aksi</th></tr></thead><tbody id="body-customer"></tbody></table></div></div>
 
     <datalist id="cust-suggestions"></datalist><datalist id="item-suggestions"></datalist>
 </div>
@@ -216,7 +215,7 @@
                 <div class="text-bold">REKENING PEMBAYARAN RESMI:</div>
                 BCA 7735308718 a/n Yohanes Budi Agung<br>
                 BRI 090201036223533 a/n Yohanes Budi Agung N
-                <div class="text-red" style="margin-top: 5px; font-size: 9px; font-weight: bold;">*Mohon konfirmasi sebelum/sesudah transfer. Pembayaran di luar rekening resmi bukan tanggung jawab kami.</div>
+                <div class="text-red" style="margin-top: 5px; font-size: 9px; font-weight: bold;">*HIMBAUAN: Mohon konfirmasi sebelum/sesudah transfer. Pembayaran di luar rekening resmi di atas bukan tanggung jawab kami.</div>
             </div>
             <div style="text-align: center; margin-top: 15px; font-size: 10px;">--- TERIMA KASIH ---</div>
         </div>
@@ -251,16 +250,28 @@
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => auth.signInWithEmailAndPassword(fullId, p)).catch(() => alert("Akses Gagal!"));
     }
     function keluarSesi() { if(confirm("Logout?")) auth.signOut(); }
+    
     auth.onAuthStateChanged((user) => {
         if (user) {
             document.getElementById('layar-tutup').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             dbRef.on('value', (s) => {
                 const val = s.val();
-                if(val) { DB.pesanan = val.pesanan || []; DB.beli = val.beli || []; DB.arsip = val.arsip || []; DB.customers = val.customers || []; DB.piutang = val.piutang || []; DB.bayarPiutangBulanIni = val.bayarPiutangBulanIni || 0; }
+                if(val) { 
+                    DB.pesanan = val.pesanan || []; 
+                    DB.beli = val.beli || []; 
+                    DB.arsip = val.arsip || []; 
+                    DB.customers = val.customers || []; 
+                    DB.piutang = val.piutang || []; 
+                    DB.bayarPiutangBulanIni = val.bayarPiutangBulanIni || 0; 
+                }
                 document.getElementById('online-status').innerText = "● CLOUD SYNC AKTIF";
                 document.getElementById('online-status').className = "status-bar online";
-                refresh(); updateSaran();
+                refresh(); updateSaran(); 
+                // Auto-refresh rekap jika tab sedang aktif
+                if(document.getElementById('nav-rekap').classList.contains('active')) renderRekap();
+                if(document.getElementById('nav-piutang').classList.contains('active')) renderPiutang();
+                if(document.getElementById('nav-data').classList.contains('active')) renderArsip();
             });
         } else {
             document.getElementById('layar-tutup').style.display = 'flex';
@@ -282,23 +293,19 @@
     function bagikanNotaDanWA() { const p = DB.pesanan.find(x => x.id == currentId) || DB.piutang.find(x => x.id == currentId); if(!p) return; const teksWA = `Halo *${p.nama}*,\n\nTerima kasih telah order di *Bekas Noda Tinta*.\n\nSisa Tagihan: ${toRp(p.total - p.dp)}\n\nSukses selalu!`; html2canvas(document.getElementById('invoice-render'), { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false }).then(canvas => { canvas.toBlob(function(blob) { const file = new File([blob], 'Nota.png', { type: 'image/png' }); if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: 'Nota', text: teksWA }); } else { window.open(`https://wa.me/${p.telp.replace(/\D/g,'').replace(/^0/,'62')}?text=${encodeURIComponent(teksWA)}`); } }, 'image/png'); }); }
     function renderPiutang() { const body = document.getElementById('body-piutang'); body.innerHTML = ''; if(!DB.piutang) DB.piutang = []; DB.piutang.forEach((p, index) => { let sisa = p.total - p.dp; if(sisa > 0) body.innerHTML += `<tr><td>${p.bulanAsal || '-'}</td><td class="nama-klik" onclick="reviewP(${p.id}, true)">${p.nama}</td><td class="text-right"><b>${new Intl.NumberFormat('id-ID').format(sisa)}</b></td><td><span class="status belum">Belum Lunas</span></td><td><button class="btn-lunas" onclick="tandaiLunas(${index})">Bayar</button></td></tr>`; }); }
     function tandaiLunas(index) { let p = DB.piutang[index]; let sisa = p.total - p.dp; let bayar = prompt(`Sisa piutang ${p.nama}: Rp ${new Intl.NumberFormat('id-ID').format(sisa)}\nMasukkan nominal:`, sisa); if (bayar !== null) { let nominal = parseInt(bayar.replace(/\D/g, '')) || 0; if(nominal > 0) { p.dp += nominal; if(!p.history) p.history = []; p.history.push({ tgl: new Date().toLocaleDateString('id-ID'), nominal: nominal }); DB.bayarPiutangBulanIni = (DB.bayarPiutangBulanIni || 0) + nominal; dbRef.set(DB).then(() => { renderPiutang(); }); } } }
-    function renderRekap() { let pen = DB.pesanan.reduce((a, b) => a + b.total, 0); let realMasuk = DB.pesanan.reduce((a, b) => a + clean(b.dp), 0); let penPiutang = DB.bayarPiutangBulanIni || 0; let bel = (DB.beli || []).reduce((a, b) => a + b.total, 0); let totalCup = DB.pesanan.reduce((sum, p) => sum + p.items.reduce((iSum, it) => iSum + clean(it.qty), 0), 0); let sisaPiutangLama = (DB.piutang || []).reduce((a, b) => a + (clean(b.total) - clean(b.dp)), 0); let margin = pen > 0 ? (((pen - bel) / pen) * 100).toFixed(1) : 0; document.getElementById('rekap-isi').innerHTML = `<div class="highlight-rekap"><p><span>Omzet Pesanan Baru:</span> <b>${toRp(pen)}</b></p><p><span>Uang Masuk Pesanan Baru:</span> <b>${toRp(realMasuk)}</b></p><p><span>Uang Masuk dari Piutang:</span> <b>${toRp(penPiutang)}</b></p><p><span>Total Uang Masuk (Real):</span> <b style="color:#27ae60">${toRp(realMasuk + penPiutang)}</b></p><p><span>Belum Melunasi (Bulan Ini):</span> <b style="color:#e74c3c">${toRp(pen - realMasuk)}</b></p><p><span>Total Piutang Saat Ini:</span> <b style="color:#d35400; font-weight:900;">${toRp(sisaPiutangLama + (pen - realMasuk))}</b></p><hr><p><span>Total Pengeluaran:</span> <b>${toRp(bel)}</b></p><p><span>Total Cup Terjual:</span> <b>${new Intl.NumberFormat('id-ID').format(totalCup)} pcs</b></p><p><span>Margin (Omzet):</span> <b>${margin}%</b></p><hr><h3><span>LABA REAL:</span> <span>${toRp((realMasuk + penPiutang) - bel)}</span></h3></div>`; }
-    function refresh() { const b = document.getElementById('body-pesanan'); b.innerHTML = ''; DB.pesanan.forEach(p => { b.innerHTML += `<tr><td class="col-nota"><b>${p.no}</b></td><td class="col-nama"><span class="nama-klik" onclick="reviewP(${p.id})">${p.nama}</span></td><td><small>${p.status}</small></td><td><div class="btn-group"><button class="btn-icon btn-print" onclick="bukaInvoice(${p.id})">⎙</button><button class="btn-icon btn-edit" onclick="editP(${p.id})">E</button><button class="btn-icon btn-delete" onclick="hapusData(${p.id}, 'p')">X</button></div></td></tr>`; }); const bb = document.getElementById('body-beli'); bb.innerHTML = ''; if(DB.beli) DB.beli.forEach((bl, i) => { bb.innerHTML += `<tr><td>${bl.tgl}</td><td>${bl.nama}</td><td>${toRp(bl.total)}</td><td><button class="btn-icon btn-delete" onclick="hapusData(${i}, 'b')">X</button></td></tr>`; }); }
-    function reviewP(id, isPiutang = false) { const p = isPiutang ? DB.piutang.find(x => x.id == id) : DB.pesanan.find(x => x.id == id); if(!p) return; let its = p.items.map(it => `• ${it.merk || it.nama} ${it.jenis || ''} (${it.qty} pcs)`).join('<br>'); let histHTML = ''; if (p.history && p.history.length > 0) { let trs = p.history.map(h => `<tr><td>${h.tgl}</td><td align="right">${new Intl.NumberFormat('id-ID').format(h.nominal)}</td></tr>`).join(''); histHTML = `<hr><b>Riwayat Bayar:</b><table class="table-history"><tr><th>Tgl</th><th>Nominal</th></tr>${trs}</table>`; } document.getElementById('review-isi').innerHTML = `<b>Status:</b> ${p.status}<br><b>Nama:</b> ${p.nama}<br><hr><b>Items:</b><br>${its}<br><hr><b>Bill:</b> ${toRp(p.total)}<br><b>Sisa:</b> ${toRp(p.total - p.dp)}${histHTML}`; document.getElementById('modalReview').style.display = 'block'; }
-    function renderCustomer() { const b = document.getElementById('body-customer'); b.innerHTML = ''; DB.customers.forEach((c, i) => { b.innerHTML += `<tr><td class="col-nama"><b>${c.nama}</b></td><td>${c.telp}</td><td><div class="btn-group"><button class="btn-icon btn-print" onclick="window.open('https://wa.me/${c.telp.replace(/\D/g,'').replace(/^0/,'62')}')">WA</button><button class="btn-icon btn-delete" onclick="hapusCust(${i})">X</button></div></td></tr>`; }); }
-    function closingBulanan() { if(!confirm("Closing?")) return; const bulanSekarang = new Date().toLocaleDateString('id-ID', {month:'long', year:'numeric'}); let pen = DB.pesanan.reduce((a, b) => a + b.total, 0); let realMasuk = DB.pesanan.reduce((a, b) => a + clean(b.dp), 0); let penPiutang = DB.bayarPiutangBulanIni || 0; let bel = (DB.beli || []).reduce((a, b) => a + b.total, 0); let totalCup = DB.pesanan.reduce((sum, p) => sum + p.items.reduce((iSum, it) => iSum + clean(it.qty), 0), 0); let sisaPiutangLama = (DB.piutang || []).reduce((a, b) => a + (clean(b.total) - clean(b.dp)), 0); DB.pesanan.forEach(p => { if(clean(p.total) > clean(p.dp)) { p.bulanAsal = bulanSekarang; if(!DB.piutang) DB.piutang = []; DB.piutang.push(p); } }); DB.arsip.push({ tgl: bulanSekarang, omzet: pen, uangMasuk: realMasuk + penPiutang, pengeluaran: bel, laba: (realMasuk + penPiutang) - bel, cup: totalCup, piutang: (pen - realMasuk) + sisaPiutangLama }); DB.pesanan = []; DB.beli = []; DB.bayarPiutangBulanIni = 0; DB.piutang = DB.piutang.filter(x => clean(x.total) > clean(x.dp)); dbRef.set(DB).then(() => alert("Berhasil Closing!")); }
-    function resetTotal() { if(confirm("Hapus semua?")) { DB = { pesanan: [], beli: [], arsip: [], customers: [], piutang: [], bayarPiutangBulanIni: 0 }; dbRef.set(DB); } }
-    function renderArsip() { const d = document.getElementById('arsip-list'); d.innerHTML = ''; if(DB.arsip) DB.arsip.forEach(a => { d.innerHTML += `<div class="highlight-rekap">Periode: <b>${a.tgl}</b><br>Laba Real: <b style="color:green">${toRp(a.laba)}</b> | Omzet: ${toRp(a.omzet || 0)}</div>`; }); }
-    function unduhExcelMaster() { const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(DB.pesanan.map(p => ({ "No Nota": p.no, "Nama": p.nama, "WA": p.telp, "Detail": p.warna, "Items": p.items.map(it => `${it.merk} ${it.jenis} (${it.qty})`).join(', '), "Total": p.total, "Terbayar": p.dp, "Tgl": p.tgl_p, "Status": p.status }))), "Pesanan Aktif"); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((DB.piutang || []).map(p => ({ "Bulan": p.bulanAsal, "Nama": p.nama, "Total": p.total, "Terbayar": p.dp, "Sisa": p.total - p.dp }))), "Piutang Usaha"); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((DB.beli || []).map(b => ({ "Tgl": b.tgl, "Barang": b.nama, "Total": b.total }))), "Pembelian"); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((DB.arsip || []).map(a => ({ "Periode": a.tgl, "Omzet": a.omzet, "Uang Masuk": a.uangMasuk, "Pengeluaran": a.pengeluaran, "Laba": a.laba, "Cup": a.cup, "Sisa Piutang": a.piutang }))), "Laporan Bulanan"); XLSX.writeFile(wb, `BNT_Laporan.xlsx`); }
-    function unduhExcelKontak() { let csv = "Nama,WhatsApp\n"; (DB.customers || []).forEach(c => { csv += `"${c.nama}","${c.telp}"\n`; }); const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'Kontak_BNT.csv'; a.click(); }
-    function simpanBeli() { if(!document.getElementById('b-nama').value) return; if(!DB.beli) DB.beli = []; DB.beli.push({ tgl: document.getElementById('b-tgl').value || new Date().toISOString().split('T')[0], nama: document.getElementById('b-nama').value, total: clean(document.getElementById('b-qty').value) * clean(document.getElementById('b-hrg').value) }); dbRef.set(DB).then(() => { document.getElementById('b-nama').value=''; document.getElementById('b-qty').value=''; document.getElementById('b-hrg').value=''; alert("Tersimpan!"); }); }
-    function hapusData(id, type) { if(!confirm("Hapus?")) return; if(type==='p') DB.pesanan=DB.pesanan.filter(x=>x.id!=id); else DB.beli.splice(id, 1); dbRef.set(DB); }
-    function hapusCust(i) { if(confirm("Hapus?")) { DB.customers.splice(i, 1); dbRef.set(DB); } }
-    function editP(id) { editId = id; const p = DB.pesanan.find(x => x.id == id); document.getElementById('p-nama').value = p.nama; document.getElementById('p-telp').value = p.telp; document.getElementById('p-warna').value = p.warna; document.getElementById('p-ongkir').value = new Intl.NumberFormat('id-ID').format(p.ongkir); document.getElementById('p-disc').value = new Intl.NumberFormat('id-ID').format(p.disc); document.getElementById('p-dp').value = new Intl.NumberFormat('id-ID').format(p.dp); document.getElementById('p-note').value = p.note; document.getElementById('p-tgl-pesan').value = p.tgl_p; document.getElementById('p-tgl-kirim').value = p.tgl_k; document.getElementById('p-status').value = p.status; document.getElementById('item-list-container').innerHTML = ''; p.items.forEach(it => tambahBarisItem(it)); hitungP(); bukaTab('pesanan'); document.getElementById('btn-main-save').innerText="UPDATE PESANAN";}
-    function resetForm() { document.getElementById('p-nama').value=''; document.getElementById('p-telp').value=''; document.getElementById('p-warna').value=''; document.getElementById('p-ongkir').value='0'; document.getElementById('p-disc').value='0'; document.getElementById('p-dp').value='0'; document.getElementById('p-note').value=''; document.getElementById('item-list-container').innerHTML=''; tambahBarisItem(); hitungP(); }
-    function tutupModal() { document.getElementById('modalInv').style.display='none'; document.getElementById('modalReview').style.display='none'; }
-    window.onload = () => { if(DB.pesanan.length === 0) tambahBarisItem(); document.getElementById('p-tgl-pesan').valueAsDate = new Date(); document.getElementById('b-tgl').valueAsDate = new Date(); };
-</script>
+    
+    function renderRekap() { 
+        let pen = DB.pesanan.reduce((a, b) => a + b.total, 0); 
+        let realMasuk = DB.pesanan.reduce((a, b) => a + clean(b.dp), 0);
+        let penPiutang = DB.bayarPiutangBulanIni || 0;
+        let bel = (DB.beli || []).reduce((a, b) => a + b.total, 0); 
+        let totalCup = DB.pesanan.reduce((sum, p) => sum + p.items.reduce((iSum, it) => iSum + clean(it.qty), 0), 0);
+        let sisaPiutangLama = (DB.piutang || []).reduce((a, b) => a + (clean(b.total) - clean(b.dp)), 0);
+        let sisaBulanIni = pen - realMasuk;
+        let margin = pen > 0 ? (((pen - bel) / pen) * 100).toFixed(1) : 0;
+        
+        document.getElementById('rekap-isi').innerHTML = `<div class="highlight-rekap"><p><span>Omzet Pesanan Baru:</span> <b>${toRp(pen)}</b></p><p><span>Uang Masuk Pesanan Baru:</span> <b>${toRp(realMasuk)}</b></p><p><span>Uang Masuk dari Piutang:</span> <b>${toRp(penPiutang)}</b></p><p><span>Total Uang Masuk (Real):</span> <b style="color:#27ae60">${toRp(realMasuk + penPiutang)}</b></p><p><span>Belum Melunasi (Bulan Ini):</span> <b style="color:#e74c3c">${toRp(sisaBulanIni)}</b></p><p><span>Total Piutang Saat Ini:</span> <b style="color:#d35400; font-weight:900;">${toRp(sisaPiutangLama + sisaBulanIni)}</b></p><hr><p><span>Total Pengeluaran:</span> <b>${toRp(bel)}</b></p><p><span>Total Cup Terjual:</span> <b>${new Intl.NumberFormat('id-ID').format(totalCup)} pcs</b></p><p><span>Margin (Omzet):</span> <b>${margin}%</b></p><hr><h3><span>LABA REAL:</span> <span>${toRp((realMasuk + penPiutang) - bel)}</span></h3></div>`; 
+    }
 
-</body>
-</html>
+    function refresh() { const b = document.getElementById('body-pesanan'); b.innerHTML = ''; DB.pesanan.forEach(p => { b.innerHTML += `<tr><td class="col-nota"><b>${p.no}</b></td><td class="col-nama"><span class="nama-klik" onclick="reviewP(${p.id})">${p.nama}</span></td><td><small>${p.status}</small></td><td><div class="btn-group"><button class="btn-icon btn-print" onclick="bukaInvoice(${p.id})">⎙</button><button class="btn-icon btn-edit" onclick="editP(${p.id})">E</button><button class="btn-icon btn-delete" onclick="hapusData(${p.id}, 'p')">X</button></div></td></tr>`; }); const bb = document.getElementById('body-beli'); bb.innerHTML = ''; if(DB.beli) DB.beli.forEach((bl, i) => { bb.innerHTML += `<tr><td>${bl.tgl}</td><td>${bl.nama}</td><td>${toRp(bl.total)}</td><td><button class="btn-icon btn-delete" onclick="hapusData(${i}, 'b')">X</button></td></tr>`; }); }
+    function reviewP(id, isPiutang = false) { const p = isPiutang ? DB.piutang.find(x => x.id == id) : DB.pesanan.find(x => x.id == id); if(!p) return; let its = p.items.map(it => `• ${it.merk || it.nama} ${it.jenis || ''} (${it.qty} pcs)`).join('<br>'); let histHTML = ''; if (p.histo
